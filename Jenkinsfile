@@ -5,7 +5,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 echo "Pulling code from GitHub"
-                git branch: 'main', url: 'https://github.com/muddasir-x/for-my-jenkins-pipelines.git'
+                git branch: 'main', url: 'https://github.com/muddasir-x/for-my-jenkins.git'
             }
         }
 
