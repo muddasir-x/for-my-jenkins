@@ -1,27 +1,29 @@
 pipeline {
     agent any
+
     stages {
-        stage('Compile') {
+        stage('Checkout') {
             steps {
-                echo "Compiled successfully"
+                echo "Pulling code from GitHub"
+                git branch: 'main', url: 'https://github.com/muddasir-x/for-my-jenkins-pipelines.git'
             }
         }
 
-        stage('JUnit') {
+        stage('Run Docker Container') {
             steps {
-                echo "Tested successfully"
-            }
-        }
+                echo "Running Docker container"
 
-        stage('Quality-Gate') {
-            steps {
-                echo "Quality-Gate sonar completed successfully"
-            }
-        }
+                sh '''
+                # Stop old container if exists
+                docker rm -f html-site 2>/dev/null || true
 
-        stage('Deploy') {
-            steps {
-                echo "Deployment to nexus successfully"
+                # Run Nginx container with HTML from Jenkins workspace
+                docker run -d \
+                    --name html-site \
+                    -p 8081:80 \
+                    -v $PWD:/usr/share/nginx/html:ro \
+                    nginx:latest
+                '''
             }
         }
     }
