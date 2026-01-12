@@ -2,7 +2,6 @@ pipeline {
     agent any
 
     stages {
-
         stage('Checkout') {
             steps {
                 echo "Pulling code from GitHub"
@@ -10,31 +9,10 @@ pipeline {
             }
         }
 
-        stage('Test') {
+        stage('Run') {
             steps {
-                echo "Running basic HTML validation"
-                // simple check for unclosed <h1> tags
-                sh '''
-                grep -q "<h1>.*</h1>" index.html || echo "Warning: possible HTML tag issue"
-                '''
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo "Deploying HTML to Nginx container"
-
-                sh '''
-                # Stop old container if exists
-                docker rm -f html-site 2>/dev/null || true
-
-                # Run Nginx container with code mounted
-                docker run -d \
-                    --name html-site \
-                    -p 8081:80 \
-                    -v $PWD:/usr/share/nginx/html:ro \
-                    nginx:latest
-                '''
+                echo "Executing Jenkinsfile - simple test"
+                sh 'echo "Hello, Jenkins is running!"'
             }
         }
     }
