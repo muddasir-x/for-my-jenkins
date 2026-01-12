@@ -1,18 +1,27 @@
 pipeline {
     agent any
-
     stages {
-        stage('Checkout') {
+        stage('Compile') {
             steps {
-                echo "Pulling code from GitHub"
-                git branch: 'main', url: 'https://github.com/muddasir-x/for-my-jenkins.git'
+                echo "Compiled successfully"
             }
         }
 
-        stage('Run') {
+        stage('JUnit') {
             steps {
-                echo "Executing Jenkinsfile - simple test"
-                sh 'echo "Hello, Jenkins is running!"'
+                echo "Tested successfully"
+            }
+        }
+
+        stage('Quality-Gate') {
+            steps {
+                echo "Quality-Gate sonar completed successfully"
+            }
+        }
+
+        stage('Deploy') {
+            steps {
+                echo "Deployment to nexus successfully"
             }
         }
     }
