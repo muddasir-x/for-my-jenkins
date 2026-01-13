@@ -1,19 +1,30 @@
 pipeline {
-    agent {
-        docker {
-            image 'docker:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
     
     stages {
-        stage('Build') {
+        stage('Run Docker Container') {
             steps {
-                sh '''
-                    docker --version
-                    docker rm -f html-site || true
-                    docker run -d --name html-site -p 8081:80 -v $PWD:/usr/share/nginx/html:ro nginx
-                '''
+                script {
+                    sh '''
+                        # Use full path to docker
+                        /usr/local/bin/docker --version
+                        
+                        # Remove existing container if any
+                        /usr/local/bin/docker rm -f html-site 2>/dev/null || true
+                        
+                        # Run new container
+                        /usr/local/bin/docker run -d \
+                          --name html-site \
+                          -p 8081:80 \
+                          -v "$PWD":/usr/share/nginx/html:ro \
+                          nginx:alpine
+                        
+                        # Check if running
+                        sleep 2
+                        /usr/local/bin/docker ps | grep html-site
+                        echo "Container should be accessible at http://localhost:8081"
+                    '''
+                }
             }
         }
     }
