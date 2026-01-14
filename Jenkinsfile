@@ -1,31 +1,58 @@
 pipeline {
     agent any
     
+    environment {
+        AWS_REGION = "us-east-1"
+        ECR_REPO = "077208284482.dkr.ecr.us-east-1.amazonaws.com/testing"
+        IMAGE_TAG = "latest"
+    }
+    
     stages {
-        stage('Run Docker Container') {
+        
+        stage('Checkout') {
             steps {
-                script {
-                    sh '''
-                        # Use full path to docker
-                        /usr/local/bin/docker --version
-                        
-                        # Remove existing container if any
-                        /usr/local/bin/docker rm -f html-site 2>/dev/null || true
-                        
-                        # Run new container
-                        /usr/local/bin/docker run -d \
-                          --name html-site \
-                          -p 8081:80 \
-                          -v "$PWD":/usr/share/nginx/html:ro \
-                          nginx:alpine
-                        
-                        # Check if running
-                        sleep 2
-                        /usr/local/bin/docker ps | grep html-site
-                        echo "Container should be accessible at http://localhost:8081"
-                    '''
+                git branch: 'main', url: 'https://github.com/muddasir-x/for-my-jenkins.git'
+            }
+        }
+        
+        stage('build docker image') {
+            steps {
+                sh "docker build -t ${ECR_REPO}:${IMAGE_TAG} ."
+            }
+        }
+        
+        stage('test docker image') {
+            steps {
+                sh "docker run --rm ${ECR_REPO}:${IMAGE_TAG} echo 'test passed!'"
+            }
+        }
+        
+        stage('login aws to ecr ') {
+            steps {
+                withCredentials([[$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-creds']]) {
+                    sh "aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin 077208284482.dkr.ecr.us-east-1.amazonaws.com"
                 }
             }
         }
+        
+        stage('push to aws ecr') {
+            steps {
+                sh "docker push ${ECR_REPO}:${IMAGE_TAG}"
+            }
+        }
     }
+    
+    post {
+        always {
+            echo "pipelines finished"
+        }
+        
+        success {
+            echo "pipeline successfull yeahhhh let's go babay"
+        }
+        
+        failure {
+            echo "try again you failed but no die"
+        }
+    } 
 }
